@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratório de Tabela Hash - Múltiplas Estratégias</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            gap: 25px;
+            align-items: flex-start; 
+        }
+        
+        /* Painel da Esquerda: Controles Fixo/Sticky */
+        .panel-left {
+            flex: 1;
+            max-width: 450px;
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 20px;
+            height: calc(100vh - 40px); 
+        }
+        
+        .header h1 { margin-top: 0; color: #2c3e50; font-size: 1.5em; margin-bottom: 5px; }
+        .header p { color: #7f8c8d; line-height: 1.4; font-size: 0.9em; margin-bottom: 15px;}
+        
+        /* Painel de Fator de Carga */
+        .metrics-board {
+            background: #e8f4f8;
+            border: 2px solid #3498db;
+            border-radius: 6px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .metrics-title { font-weight: bold; color: #2980b9; margin-right: 8px; font-size: 0.95em; }
+        .load-factor { font-weight: bold; font-size: 1.1em; color: #2c3e50; margin-right: 8px; }
+        .load-factor.danger { color: #e74c3c; }
+        .load-factor.warning { color: #f39c12; }
+        .metrics-desc { color: #7f8c8d; font-size: 0.85em; }
+        
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; color: #34495e; font-size: 0.9em; }
+        select, input { 
+            width: 100%; padding: 10px; font-size: 15px; 
+            border: 2px solid #bdc3c7; border-radius: 6px; outline: none; box-sizing: border-box;
+        }
+        select:focus, input:focus { border-color: #3498db; }
+        
+        .btn-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        button { 
+            flex: 1; padding: 10px; font-size: 15px; font-weight: bold; 
+            background: #3498db; color: white; border: none; border-radius: 6px; 
+            cursor: pointer; transition: 0.2s; 
+        }
+        button:hover { background: #2980b9; }
+        button:disabled { background: #95a5a6; cursor: not-allowed; }
+        button.btn-search { background: #9b59b6; }
+        button.btn-search:hover { background: #8e44ad; }
+        button.btn-danger { background: #e74c3c; }
+        button.btn-danger:hover { background: #c0392b; }
+        
+        /* Área de log flexível */
+        .log-container {
+            flex: 1; 
+            background: #2c3e50; 
+            color: #ecf0f1; 
+            padding: 20px; 
+            border-radius: 8px; 
+            overflow-y: auto; 
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 15px; 
+            line-height: 1.6; 
+            border-left: 5px solid #f1c40f;
+            min-height: 200px;
+        }
+        .log-step { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #34495e; }
+        .log-step:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .highlight-text { color: #f1c40f; font-weight: bold; }
+        .success-text { color: #2ecc71; font-weight: bold; }
+        .error-text { color: #e74c3c; font-weight: bold; }
+
+        /* Painel da Direita: Tabela Hash Vertical */
+        .panel-right {
+            flex: 2;
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .table-container { display: flex; flex-direction: column; gap: 8px; }
+        
+        .row {
+            display: flex;
+            align-items: center;
+            min-height: 45px;
+            padding: 4px;
+            border-radius: 6px;
+            background: #fafafa;
+            border: 1px solid #ecf0f1;
+            transition: all 0.3s;
+        }
+        
+        .row.active-row { background: #e8f4f8; border-color: #3498db; }
+        .row.collision-row { background: #fdedec; border-color: #e74c3c; }
+        
+        .index-box {
+            min-width: 50px; height: 40px; background: #ecf0f1; border: 2px solid #bdc3c7;
+            border-radius: 6px; display: flex; justify-content: center; align-items: center;
+            font-weight: bold; color: #2c3e50; font-size: 14px; margin-right: 15px;
+        }
+        .index-box.calculating { background: #f1c40f; border-color: #f39c12; color: #fff; transform: scale(1.1); }
+        
+        .arrow { margin-right: 15px; color: #95a5a6; font-weight: bold; font-size: 20px; }
+        .arrow.traversing { color: #e74c3c; transform: translateX(5px); }
+        
+        .node-box {
+            padding: 0 15px; height: 40px; background: #3498db; color: white;
+            border-radius: 6px; display: flex; justify-content: center; align-items: center;
+            font-weight: bold; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.4s; position: relative; margin-right: 10px;
+        }
+        .chaining-mode .node-box { border-radius: 20px; } 
+        
+        .node-box.traversing { background: #f39c12; transform: translateY(-3px); }
+        .node-box.collision { background: #e74c3c; animation: shake 0.4s; }
+        .node-box.new-node { background: #2ecc71; animation: popIn 0.5s; }
+        .node-box.found-node { background: #9b59b6; border: 2px solid #8e44ad; transform: scale(1.05); }
+        
+        @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+    </style>
+</head>
+<body>
+
+    <div class="panel-left">
+        <div class="header">
+            <h1>Tabela Hash Multimodal</h1>
+            <p>Selecione a técnica de tratamento de colisões e observe o comportamento em memória e o Fator de Carga.</p>
+        </div>
+        
+        <div class="metrics-board">
+            <span class="metrics-title">Fator de Carga (α = n/m):</span>
+            <span class="load-factor" id="lblLoadFactor">0.00</span>
+            <span class="metrics-desc" id="lblLoadDesc"> - Tabela Vazia.</span>
+        </div>
+        
+        <div class="form-group">
+            <label>Estratégia de Tratamento de Colisão:</label>
+            <select id="strategySelect" onchange="resetTable()">
+                <option value="chaining">Encadeamento Separado (Listas)</option>
+                <option value="linear">Endereçamento Aberto: Sondagem Linear</option>
+                <option value="double">Endereçamento Aberto: Duplo Hashing</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <input type="text" id="inputString" placeholder="Digite uma string..." autocomplete="off">
+        </div>
+        
+        <!-- Os 3 botões agora estão alinhados lado a lado -->
+        <div class="btn-group">
+            <button id="btnInsert" onclick="iniciarOperacao('inserir')">Inserir</button>
+            <button id="btnSearch" class="btn-search" onclick="iniciarOperacao('buscar')">Buscar</button>
+            <button id="btnClear" class="btn-danger" onclick="resetTable()">Limpar</button>
+        </div>
+        
+        <div class="log-container" id="logArea">
+            <div style="color: #bdc3c7;">Aguardando operação...</div>
+        </div>
+    </div>
+
+    <div class="panel-right">
+        <div class="table-container" id="tableContainer">
+            <!-- Linhas geradas via JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        const TABLE_SIZE = 20;
+        let isProcessing = false;
+        let numElements = 0;
+        let memoryTable = new Array(TABLE_SIZE).fill(null);
+
+        // Funções Base
+        function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+        
+        function initTable() {
+            const container = document.getElementById('tableContainer');
+            const strategy = document.getElementById('strategySelect').value;
+            container.className = 'table-container ' + (strategy === 'chaining' ? 'chaining-mode' : 'open-mode');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < TABLE_SIZE; i++) {
+                const row = document.createElement('div');
+                row.className = 'row';
+                row.id = `row-${i}`;
+                
+                const indexBox = document.createElement('div');
+                indexBox.className = 'index-box';
+                indexBox.id = `idx-${i}`;
+                indexBox.innerText = `[${i}]`;
+                
+                row.appendChild(indexBox);
+                container.appendChild(row);
+                
+                if(strategy === 'chaining') {
+                    memoryTable[i] = []; 
+                } else {
+                    memoryTable[i] = null; 
+                }
+            }
+        }
+
+        function resetTable() {
+            if(isProcessing) return;
+            numElements = 0;
+            updateLoadFactor();
+            initTable();
+            document.getElementById('logArea').innerHTML = '<div style="color: #bdc3c7;">Tabela reiniciada. Aguardando operação...</div>';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateLoadFactor() {
+            const lf = numElements / TABLE_SIZE;
+            const lfDisplay = document.getElementById('lblLoadFactor');
+            const lfDesc = document.getElementById('lblLoadDesc');
+            const strategy = document.getElementById('strategySelect').value;
+            
+            lfDisplay.innerText = lf.toFixed(2);
+            lfDisplay.className = 'load-factor';
+            
+            if (strategy === 'chaining') {
+                if (lf > 1.5) lfDisplay.classList.add('danger');
+                else if (lf > 1.0) lfDisplay.classList.add('warning');
+                lfDesc.innerText = " - Em encadeamento, α pode ser > 1.";
+            } else {
+                if (lf >= 1.0) lfDisplay.classList.add('danger');
+                else if (lf > 0.7) lfDisplay.classList.add('warning');
+                lfDesc.innerText = " - Em end. aberto, α máximo é 1.0.";
+            }
+        }
+
+        function addLog(message) {
+            const logArea = document.getElementById('logArea');
+            if(logArea.innerHTML.includes("Aguardando")) logArea.innerHTML = '';
+            const logStep = document.createElement('div');
+            logStep.className = 'log-step';
+            logStep.innerHTML = message;
+            logArea.appendChild(logStep);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        // Funções de Cálculo Hash
+        function calcularHash1(str) {
+            let sum = 0;
+            for (let i = 0; i < str.length; i++) sum += str.charCodeAt(i);
+            return sum % TABLE_SIZE;
+        }
+
+        function calcularHash2(str) {
+            let sum = 0;
+            for (let i = 0; i < str.length; i++) sum += str.charCodeAt(i);
+            return 7 - (sum % 7);
+        }
+
+        async function iniciarOperacao(tipo) {
+            if (isProcessing) return;
+            const inputEl = document.getElementById('inputString');
+            const str = inputEl.value.trim();
+            if (!str) return;
+
+            const strategy = document.getElementById('strategySelect').value;
+            
+            if (tipo === 'inserir' && strategy !== 'chaining' && numElements >= TABLE_SIZE) {
+                alert("A Tabela Hash está 100% cheia. Limpe-a para continuar inserindo.");
+                return;
+            }
+
+            isProcessing = true;
+            document.querySelectorAll('button').forEach(b => b.disabled = true);
+            inputEl.value = '';
+            document.getElementById('logArea').innerHTML = '';
+            document.querySelectorAll('.found-node').forEach(el => el.classList.remove('found-node'));
+
+            const h1 = calcularHash1(str);
+            let h2 = (strategy === 'double') ? calcularHash2(str) : 1;
+            
+            addLog(`<strong>Cálculo do Hash Inicial:</strong><br>
+                    h1("${str}") = soma(ASCII) % ${TABLE_SIZE} = <span class="highlight-text">[${h1}]</span>`);
+            await sleep(1500);
+
+            if(strategy === 'chaining') {
+                await executarEncadeamento(str, h1, tipo);
+            } else {
+                await executarEnderecamentoAberto(str, h1, h2, strategy, tipo);
+            }
+
+            if(tipo === 'inserir') updateLoadFactor();
+
+            isProcessing = false;
+            document.querySelectorAll('button').forEach(b => b.disabled = false);
+            inputEl.focus();
+        }
+
+        async function executarEncadeamento(str, hashIdx, tipo) {
+            const row = document.getElementById(`row-${hashIdx}`);
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            row.classList.add('active-row');
+            await sleep(1000);
+
+            const nodes = row.querySelectorAll('.node-box');
+            
+            if (tipo === 'inserir') {
+                if (memoryTable[hashIdx].length > 0) {
+                    addLog(`<span class="error-text">Colisão!</span> Percorrendo a lista encadeada...`);
+                    for (let i = 0; i < nodes.length; i++) {
+                        nodes[i].classList.add('traversing');
+                        await sleep(800);
+                        nodes[i].classList.remove('traversing');
+                    }
+                }
+                
+                const arrow = document.createElement('div');
+                arrow.className = 'arrow'; arrow.innerText = '➔';
+                const node = document.createElement('div');
+                node.className = 'node-box new-node'; node.innerText = str;
+                
+                if(memoryTable[hashIdx].length > 0) row.appendChild(arrow);
+                row.appendChild(node);
+                memoryTable[hashIdx].push(str);
+                numElements++;
+                addLog(`<span class="success-text">Inserido com sucesso!</span>`);
+                await sleep(1000);
+                node.classList.remove('new-node');
+                
+            } else if (tipo === 'buscar') {
+                let found = false;
+                if (memoryTable[hashIdx].length === 0) {
+                    addLog(`Lista vazia. <span class="error-text">Não encontrado.</span>`);
+                } else {
+                    for (let i = 0; i < nodes.length; i++) {
+                        nodes[i].classList.add('traversing');
+                        addLog(`Comparando com "${nodes[i].innerText}"...`);
+                        await sleep(1000);
+                        if (nodes[i].innerText === str) {
+                            nodes[i].classList.remove('traversing');
+                            nodes[i].classList.add('found-node');
+                            addLog(`<span class="success-text">Encontrado!</span>`);
+                            found = true;
+                            break;
+                        }
+                        nodes[i].classList.remove('traversing');
+                    }
+                    if (!found) addLog(`<span class="error-text">Fim da lista. Não encontrado.</span>`);
+                }
+            }
+            row.classList.remove('active-row');
+        }
+
+        async function executarEnderecamentoAberto(str, h1, h2, strategy, tipo) {
+            let idxAtual = h1;
+            let tentativa = 0;
+            
+            if (strategy === 'double' && tipo === 'inserir') {
+                addLog(`<strong>Cálculo do Passo (Rehashing):</strong><br>h2("${str}") = 7 - (soma % 7) = <span class="highlight-text">${h2}</span>`);
+                await sleep(1500);
+            }
+
+            while (tentativa < TABLE_SIZE) {
+                const row = document.getElementById(`row-${idxAtual}`);
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                row.classList.add('active-row');
+                
+                let stepLog = strategy === 'linear' 
+                    ? `(${h1} + ${tentativa}) % ${TABLE_SIZE}` 
+                    : `(${h1} + ${tentativa} * ${h2}) % ${TABLE_SIZE}`;
+                    
+                addLog(`Tentativa ${tentativa}: Verificando índice <span class="highlight-text">[${idxAtual}]</span>... Fórmula: ${stepLog}`);
+                await sleep(1500);
+
+                if (tipo === 'inserir') {
+                    if (memoryTable[idxAtual] === null) {
+                        const node = document.createElement('div');
+                        node.className = 'node-box new-node'; node.innerText = str;
+                        row.appendChild(node);
+                        memoryTable[idxAtual] = str;
+                        numElements++;
+                        addLog(`<span class="success-text">Posição Livre! Inserido no índice [${idxAtual}].</span>`);
+                        await sleep(1000);
+                        node.classList.remove('new-node');
+                        row.classList.remove('active-row');
+                        return;
+                    } else {
+                        row.classList.remove('active-row');
+                        row.classList.add('collision-row');
+                        row.querySelector('.node-box').classList.add('collision');
+                        addLog(`<span class="error-text">Colisão! Posição ocupada por "${memoryTable[idxAtual]}".</span> Calculando próximo salto...`);
+                        await sleep(1500);
+                        row.classList.remove('collision-row');
+                        row.querySelector('.node-box').classList.remove('collision');
+                    }
+                } else if (tipo === 'buscar') {
+                    if (memoryTable[idxAtual] === null) {
+                        addLog(`Posição [${idxAtual}] está vazia (NULL). A busca encerra aqui.<br><span class="error-text">Elemento não encontrado.</span>`);
+                        row.classList.remove('active-row');
+                        return;
+                    } else if (memoryTable[idxAtual] === str) {
+                        row.querySelector('.node-box').classList.add('found-node');
+                        addLog(`<span class="success-text">Encontrado no índice [${idxAtual}]!</span>`);
+                        await sleep(1000);
+                        row.classList.remove('active-row');
+                        return;
+                    } else {
+                        addLog(`Contém "${memoryTable[idxAtual]}". Diferente de "${str}". Calculando próximo salto...`);
+                        await sleep(1200);
+                        row.classList.remove('active-row');
+                    }
+                }
+                
+                tentativa++;
+                if (strategy === 'linear') {
+                    idxAtual = (h1 + tentativa) % TABLE_SIZE;
+                } else {
+                    idxAtual = (h1 + tentativa * h2) % TABLE_SIZE;
+                }
+            }
+            
+            if (tipo === 'buscar') {
+                addLog(`<span class="error-text">Toda a tabela foi percorrida. Elemento não encontrado.</span>`);
+            }
+        }
+
+        document.getElementById('inputString').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') iniciarOperacao('inserir');
+        });
+
+        window.onload = initTable;
+    </script>
+</body>
+</html>
