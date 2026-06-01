@@ -1,7 +1,3 @@
-Aqui está uma sugestão de arquivo `README.md` detalhada e bem estruturada para o seu projeto no GitHub. Ele destaca o propósito educacional da aplicação, as tecnologias envolvidas e a matemática por trás da lógica que você implementou.
-
----
-
 # 🔍 Laboratório de Tabela Hash Interativo
 
 Uma aplicação web interativa desenvolvida para visualizar e compreender o funcionamento interno de **Tabelas Hash** (Tabelas de Dispersão). Este projeto tem fins educacionais, demonstrando visualmente como os elementos são inseridos, buscados e como o sistema lida com o problema comum das colisões em memória.
