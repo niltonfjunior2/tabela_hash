@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Termos de Uso - Tabela Hash</title>
+    <title>Sondagem Linear - Tabela Hash</title>
     <link rel="icon" type="image/x-icon" href="data-table.ico">
     <style>
         body {
@@ -33,14 +33,26 @@
         .content-box h1 {
             color: #2c3e50;
             margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+        .content-box h1 img {
+            height: 35px;
+            margin-right: 15px;
         }
         .content-box h2 {
             color: #34495e;
             margin-top: 30px;
             font-size: 1.2em;
         }
-        .content-box p {
+        .content-box p, .content-box ul {
             color: #555;
+        }
+        .content-box ul {
+            margin-left: 20px;
+        }
+        .content-box li {
+            margin-bottom: 10px;
         }
         .back-link {
             display: inline-block;
@@ -104,20 +116,20 @@
 <body>
     <div class="main-container">
         <div class="content-box">
-            <h1>Termos de Uso</h1>
-            <p>Bem-vindo ao Laboratório de Tabela Hash.</p>
+            <h1><img src="data-table.png" alt="Icon"> Sondagem Linear</h1>
             
-            <h2>1. Aceitação dos Termos</h2>
-            <p>Ao acessar e utilizar este simulador, você concorda em cumprir estes termos de uso. O objetivo deste projeto é puramente educacional.</p>
+            <h2>O que é?</h2>
+            <p>A Sondagem Linear (Linear Probing) é uma técnica pertencente ao modelo de Endereçamento Aberto. No endereçamento aberto, não existem estruturas de dados extras: todos os elementos são armazenados nos slots da própria tabela hash. Como resultado, o tamanho da tabela define estritamente o número máximo de itens.</p>
+            <p>Ao utilizar Sondagem Linear, quando a função hash mapeia um elemento para um índice que já está em uso, a regra é simples: procurar na próxima posição livre. O índice aumenta de forma linear (1 em 1) até que um slot não preenchido seja encontrado.</p>
             
-            <h2>2. Uso Permitido</h2>
-            <p>O simulador é disponibilizado para fins acadêmicos, pesquisa e aprendizado. É proibido o uso do simulador para quaisquer fins ilegais ou não autorizados que violem leis aplicáveis.</p>
-            
-            <h2>3. Propriedade Intelectual</h2>
-            <p>Todo o conteúdo, layout, design e código fonte deste projeto são de propriedade intelectual de seus respectivos criadores e protegidos pelas leis de direitos autorais aplicáveis.</p>
-            
-            <h2>4. Isenção de Responsabilidade</h2>
-            <p>O sistema é fornecido "como está". Não garantimos a disponibilidade ininterrupta, livre de erros ou precisão absoluta do serviço fornecido pelo simulador.</p>
+            <h2>Aplicação no Sistema</h2>
+            <p>Se você escolher a estratégia "Endereçamento Aberto: Sondagem Linear" no sistema, ele demonstrará este comportamento passo a passo:</p>
+            <ul>
+                <li>Quando não houver colisão, o slot exibirá o nó armazenado ali, mantendo o controle total do espaço no array principal.</li>
+                <li>Caso o slot determinado por <code>h1</code> esteja preenchido, o simulador inicia as <strong>Tentativas</strong> (ou saltos). A fórmula utilizada para encontrar a próxima vaga é: <code>(Hash_Inicial + Tentativa) % Tamanho_da_Tabela</code>.</li>
+                <li>O log lateral detalhará cada verificação com a variável Tentativa = 1, Tentativa = 2 e assim sucessivamente. Ao final da tabela, o operador módulo <code>%</code> garante que o salto retornará ao índice 0 (varredura circular).</li>
+                <li>Este modelo ilustra na prática o problema do "Agrupamento Primário", onde longas sequências de itens adjacentes se formam, aumentando drasticamente o tempo necessário para buscar ou inserir dados num espaço vago próximo.</li>
+            </ul>
 
             <a href="index.html" class="back-link">← Voltar ao Simulador</a>
         </div>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Termos de Uso - Tabela Hash</title>
+    <title>Fator de Carga - Tabela Hash</title>
     <link rel="icon" type="image/x-icon" href="data-table.ico">
     <style>
         body {
@@ -33,14 +33,26 @@
         .content-box h1 {
             color: #2c3e50;
             margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+        .content-box h1 img {
+            height: 35px;
+            margin-right: 15px;
         }
         .content-box h2 {
             color: #34495e;
             margin-top: 30px;
             font-size: 1.2em;
         }
-        .content-box p {
+        .content-box p, .content-box ul {
             color: #555;
+        }
+        .content-box ul {
+            margin-left: 20px;
+        }
+        .content-box li {
+            margin-bottom: 10px;
         }
         .back-link {
             display: inline-block;
@@ -104,20 +116,19 @@
 <body>
     <div class="main-container">
         <div class="content-box">
-            <h1>Termos de Uso</h1>
-            <p>Bem-vindo ao Laboratório de Tabela Hash.</p>
+            <h1><img src="data-table.png" alt="Icon"> Fator de Carga</h1>
             
-            <h2>1. Aceitação dos Termos</h2>
-            <p>Ao acessar e utilizar este simulador, você concorda em cumprir estes termos de uso. O objetivo deste projeto é puramente educacional.</p>
+            <h2>O que é?</h2>
+            <p>O Fator de Carga (frequentemente denotado pela letra grega alfa, &alpha;) é uma métrica fundamental em tabelas hash. Ele representa a proporção entre a quantidade de elementos armazenados na tabela (n) e o número de espaços totais disponíveis, ou tamanho da tabela (m). A fórmula é simplesmente:</p>
+            <p style="text-align: center; font-size: 1.2em; font-weight: bold;">&alpha; = n / m</p>
+            <p>Esta métrica ajuda a medir o quão cheia a tabela está e é o principal indicativo para saber se a tabela hash precisa sofrer redimensionamento (rehashing) para manter sua eficiência de O(1) no tempo de acesso e inserção.</p>
             
-            <h2>2. Uso Permitido</h2>
-            <p>O simulador é disponibilizado para fins acadêmicos, pesquisa e aprendizado. É proibido o uso do simulador para quaisquer fins ilegais ou não autorizados que violem leis aplicáveis.</p>
-            
-            <h2>3. Propriedade Intelectual</h2>
-            <p>Todo o conteúdo, layout, design e código fonte deste projeto são de propriedade intelectual de seus respectivos criadores e protegidos pelas leis de direitos autorais aplicáveis.</p>
-            
-            <h2>4. Isenção de Responsabilidade</h2>
-            <p>O sistema é fornecido "como está". Não garantimos a disponibilidade ininterrupta, livre de erros ou precisão absoluta do serviço fornecido pelo simulador.</p>
+            <h2>Aplicação no Sistema</h2>
+            <p>No Laboratório de Tabela Hash, o fator de carga é monitorado em tempo real em um painel de métricas (na barra lateral esquerda). Conforme você insere ou tenta buscar elementos, o sistema fornece feedback visual indicando se a tabela está atingindo níveis críticos:</p>
+            <ul>
+                <li><strong>Encadeamento Separado:</strong> O fator de carga pode, teoricamente, ser maior que 1.0 (ou 100%). Isso indica que existem mais elementos do que espaços, o que significa que o tamanho médio das listas encadeadas está aumentando. O simulador alerta com cor amarela quando &alpha; ultrapassa 1.0 e com cor vermelha quando atinge 1.5, sugerindo lentidão nas buscas.</li>
+                <li><strong>Endereçamento Aberto (Sondagem Linear e Duplo Hashing):</strong> Neste modelo, os itens são guardados diretamente nos slots da tabela, portanto o limite absoluto para o fator de carga é 1.0. Se o fator ultrapassa 0.7 (70%), as colisões se tornam muito mais frequentes, tornando o desempenho sofrível (alertado em amarelo). Se atingir 1.0, o simulador bloqueará novas inserções até que a tabela seja limpa.</li>
+            </ul>
 
             <a href="index.html" class="back-link">← Voltar ao Simulador</a>
         </div>
